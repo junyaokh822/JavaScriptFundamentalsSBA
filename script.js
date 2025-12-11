@@ -121,23 +121,34 @@ function getLearnerData(course, ag, submissions) {
         `AssignmentGroup ID ${ag.id} doesn't match with CourseInfo ID ${course.id}`
       );
     }
+    const validAssignments = {}; // object that store valid assignments
+    for (let i = 0; i < ag.assignments.length; i++) {
+      const assignment = ag.assignments[i];
+      const assignmentId = assignment.id;
 
-    console.log(`Is assignment 1 due?`, isAssignmentDue("2023-01-25"));
-    console.log(`Is assignment 3 due?`, isAssignmentDue("3156-11-15"));
-    console.log(
-      `Is submission late?`,
-      isSubmissionLate("2023-02-12", "2023-02-10")
-    );
-    console.log("Calculate score 8/50", calculateScore(8, 50));
+      if (isAssignmentDue(assignment.due_at)) {
+        // only store assignments that are due
+        if (assignment.points_possible <= 0) {
+          throw new Error(
+            `possible points can't be equal or lower than 0 for assignment ${assignmentId}.`
+          );
+        }
+        validAssignments[assignmentId] = {
+          ...assignment,
+          due_at: assignment.due_at,
+          points_possible: assignment.points_possible,
+        };
+        console.log(`Assignment ${assignmentId} is due`);
+      } else {
+        console.log(`Assignment ${assignmentId} is not due`);
+      }
+    }
+
+    console.log(`Total assignment: ${Object.keys(validAssignments).length}`);
   } catch (error) {
     console.error("There's error in getLearnerData:", error.message);
   }
 }
-
-//id error checking
-// console.log("Testing error handling:");
-// const test = { ...AssignmentGroup, course_id: 567 };
-// const errorResult = getLearnerData(CourseInfo, test, LearnerSubmissions);
 
 const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
 console.log(result);
