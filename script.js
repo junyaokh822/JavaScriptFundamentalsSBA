@@ -1,7 +1,7 @@
 // The provided course information.
 const CourseInfo = {
   id: 451,
-  name: "Introduction to JavaScript"
+  name: "Introduction to JavaScript",
 };
 
 // The provided assignment group.
@@ -15,21 +15,21 @@ const AssignmentGroup = {
       id: 1,
       name: "Declare a Variable",
       due_at: "2023-01-25",
-      points_possible: 50
+      points_possible: 50,
     },
     {
       id: 2,
       name: "Write a Function",
       due_at: "2023-02-27",
-      points_possible: 150
+      points_possible: 150,
     },
     {
       id: 3,
       name: "Code the World",
       due_at: "3156-11-15",
-      points_possible: 500
-    }
-  ]
+      points_possible: 500,
+    },
+  ],
 };
 
 // The provided learner submission data.
@@ -39,54 +39,63 @@ const LearnerSubmissions = [
     assignment_id: 1,
     submission: {
       submitted_at: "2023-01-25",
-      score: 47
-    }
+      score: 47,
+    },
   },
   {
     learner_id: 125,
     assignment_id: 2,
     submission: {
       submitted_at: "2023-02-12",
-      score: 150
-    }
+      score: 150,
+    },
   },
   {
     learner_id: 125,
     assignment_id: 3,
     submission: {
       submitted_at: "2023-01-25",
-      score: 400
-    }
+      score: 400,
+    },
   },
   {
     learner_id: 132,
     assignment_id: 1,
     submission: {
       submitted_at: "2023-01-24",
-      score: 39
-    }
+      score: 39,
+    },
   },
   {
     learner_id: 132,
     assignment_id: 2,
     submission: {
       submitted_at: "2023-03-07",
-      score: 140
-    }
-  }
+      score: 140,
+    },
+  },
 ];
 
 function getLearnerData(course, ag, submissions) {
-//logic goes here
-
-
-  return result;
+  //couse id validation
+  try {
+    if (ag.course_id !== course.id) {
+      //AssignmentGroup.id != courseInfo.id
+      throw new Error(
+        `AssignmentGroup ID ${ag.id} doesn't match with CourseInfo ID ${course.id}`
+      );
+    }
+  } catch (error) {
+    console.error("There's error in getLearnerData:", error.message);
+  }
 }
+console.log("Testing error handling:");
+const test = { ...AssignmentGroup, course_id: 567 };
+const errorResult = getLearnerData(CourseInfo, test, LearnerSubmissions);
 
-const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
+// const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
 
-console.log(result);
-
+// console.log(result);
 
 // here, we would process this data to achieve the desired result.
 //   const result = [
@@ -103,7 +112,6 @@ console.log(result);
 //       2: 0.833 // late: (140 - 15) / 150
 //     }
 //   ];
-
 
 // Thing to keep in mind:
 
