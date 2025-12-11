@@ -83,14 +83,34 @@ function isAssignmentDue(due_at) {
   return currentDate >= dueDate; //return true if assignment is due
 }
 
-//check if submisssion is late
+//check if submission is late
 function isSubmissionLate(submitted_at, due_at) {
   const submittedDate = new Date(submitted_at);
   const dueDate = new Date(due_at);
   return submittedDate > dueDate; //return true if late
 }
 
+//calculate the percentage score with late penalty
+function calculateScore(score, possiblePoints, isLate = false) {
+  if (typeof score !== "number" || typeof possiblePoints !== "number") {
+    throw new Error(`score and possiblePoints has to be numbers!`);
+  }
 
+  if (possiblePoints === 0) {
+    throw new Error(`possiblePoints can't be 0`);
+  }
+
+  let finalScore = score;
+  if (isLate) {
+    const penalty = possiblePoints * 0.1;
+    finalScore = score - penalty;
+    if (finalScore < 0) {
+      // the lowest score will be 0
+      finalScore = 0;
+    }
+  }
+  return finalScore / possiblePoints; // return the percentage score
+}
 
 function getLearnerData(course, ag, submissions) {
   //couse id validation
@@ -101,6 +121,14 @@ function getLearnerData(course, ag, submissions) {
         `AssignmentGroup ID ${ag.id} doesn't match with CourseInfo ID ${course.id}`
       );
     }
+
+    console.log(`Is assignment 1 due?`, isAssignmentDue("2023-01-25"));
+    console.log(`Is assignment 3 due?`, isAssignmentDue("3156-11-15"));
+    console.log(
+      `Is submission late?`,
+      isSubmissionLate("2023-02-12", "2023-02-10")
+    );
+    console.log("Calculate score 8/50", calculateScore(8, 50));
   } catch (error) {
     console.error("There's error in getLearnerData:", error.message);
   }
@@ -111,9 +139,8 @@ function getLearnerData(course, ag, submissions) {
 // const test = { ...AssignmentGroup, course_id: 567 };
 // const errorResult = getLearnerData(CourseInfo, test, LearnerSubmissions);
 
-// const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
-
-// console.log(result);
+const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
+console.log(result);
 
 // here, we would process this data to achieve the desired result.
 //   const result = [
