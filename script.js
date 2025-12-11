@@ -76,6 +76,22 @@ const LearnerSubmissions = [
   },
 ];
 
+//check if assignment is due
+function isAssignmentDue(due_at) {
+  const dueDate = new Date(due_at);
+  const currentDate = new Date();
+  return currentDate >= dueDate; //return true if assignment is due
+}
+
+//check if submisssion is late
+function isSubmissionLate(submitted_at, due_at) {
+  const submittedDate = new Date(submitted_at);
+  const dueDate = new Date(due_at);
+  return submittedDate > dueDate; //return true if late
+}
+
+
+
 function getLearnerData(course, ag, submissions) {
   //couse id validation
   try {
@@ -89,9 +105,11 @@ function getLearnerData(course, ag, submissions) {
     console.error("There's error in getLearnerData:", error.message);
   }
 }
-console.log("Testing error handling:");
-const test = { ...AssignmentGroup, course_id: 567 };
-const errorResult = getLearnerData(CourseInfo, test, LearnerSubmissions);
+
+//id error checking
+// console.log("Testing error handling:");
+// const test = { ...AssignmentGroup, course_id: 567 };
+// const errorResult = getLearnerData(CourseInfo, test, LearnerSubmissions);
 
 // const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
 
