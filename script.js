@@ -113,45 +113,125 @@ function calculateScore(score, possiblePoints, isLate = false) {
 }
 
 function getLearnerData(course, ag, submissions) {
-  //couse id validation
+  // course id validation
   try {
     if (ag.course_id !== course.id) {
-      //AssignmentGroup.id != courseInfo.id
       throw new Error(
         `AssignmentGroup ID ${ag.id} doesn't match with CourseInfo ID ${course.id}`
       );
     }
-    const validAssignments = {}; // object that store valid assignments
+
+    const validAssignments = {}; // object that stores valid assignments
+
     for (let i = 0; i < ag.assignments.length; i++) {
       const assignment = ag.assignments[i];
-      const assignmentId = assignment.id;
-
-      if (isAssignmentDue(assignment.due_at)) {
-        // only store assignments that are due
-        if (assignment.points_possible <= 0) {
-          throw new Error(
-            `possible points can't be equal or lower than 0 for assignment ${assignmentId}.`
-          );
-        }
-        validAssignments[assignmentId] = {
-          ...assignment,
-          due_at: assignment.due_at,
-          points_possible: assignment.points_possible,
-        };
-        console.log(`Assignment ${assignmentId} is due`);
-      } else {
-        console.log(`Assignment ${assignmentId} is not due`);
+      if (
+        isAssignmentDue(assignment.due_at) &&
+        assignment.points_possible > 0
+      ) {
+        validAssignments[assignment.id] = assignment;
       }
     }
 
-    console.log(`Total assignment: ${Object.keys(validAssignments).length}`);
+    const learnerData = new Map();
+
+    for (let submission of submissions) {
+      // loop through all submissions
+      const learnerId = submission.learner_id;
+      const assignmentId = submission.assignment_id;
+
+      console.log(`\nLearner id: ${learnerId}, assignment id: ${assignmentId}`);
+
+      // Skip if assignment is not valid
+      if (!validAssignments[assignmentId]) {
+        console.log(`assignment ${assignmentId} not due or invalid`);
+        continue;
+      }
+
+      // Initialize learner object if first time seeing them
+      if (!learnerData.has(learnerId)) {
+        learnerData.set(learnerId, {
+          id: learnerId,
+          scores: {}, // store percentage
+          totalScore: 0,
+          totalPossible: 0,
+        });
+        console.log(`Created new entry for learner ${learnerId}`);
+      }
+
+      const learner = learnerData.get(learnerId);
+      const assignment = validAssignments[assignmentId];
+
+      // Check if submission is late
+      const late = isSubmissionLate(
+        submission.submission.submitted_at,
+        assignment.due_at
+      );
+
+      console.log(`Late submission? ${late}`);
+
+      // Calculate score with potential late penalty
+      let finalScore = submission.submission.score;
+      if (late) {
+        const penalty = assignment.points_possible * 0.1;
+        finalScore = finalScore - penalty;
+        if (finalScore < 0) {
+          finalScore = 0;
+        }
+        console.log(`Applied penalty: ${penalty} points.`);
+      }
+
+      // Calculate percentage for this assignment
+      const percentage = finalScore / assignment.points_possible;
+
+      // Store in learner's scores object
+      learner.scores[assignmentId] = percentage;
+
+      // Update totals for weighted average
+      learner.totalScore += finalScore;
+      learner.totalPossible += assignment.points_possible;
+
+      console.log(`Percentage: ${percentage.toFixed(2)}.`);
+      console.log(
+        `updated totals: ${learner.totalScore}/${learner.totalPossible}`
+      );
+    }
+
+    // Convert Map to array format for output
+    const result = [];
+    for (let [learnerId, data] of learnerData) {
+      // Calculate overall average
+      const avg =
+        data.totalPossible > 0 ? data.totalScore / data.totalPossible : 0;
+
+      // Create result object
+      const learnerResult = {
+        id: data.id,
+        avg: parseFloat(avg.toFixed(3)),
+      };
+
+      // Add individual assignment scores
+      for (let assignmentId in data.scores) {
+        learnerResult[assignmentId] = parseFloat(
+          data.scores[assignmentId].toFixed(3)
+        );
+      }
+
+      result.push(learnerResult);
+    }
+    console.log();
+
+    console.log(`Final learner's data:`, result);
+    return result;
   } catch (error) {
     console.error("There's error in getLearnerData:", error.message);
+    return [];
   }
 }
 
-const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
-console.log(result);
+getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
+// const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
+// console.log(result);
 
 // here, we would process this data to achieve the desired result.
 //   const result = [
