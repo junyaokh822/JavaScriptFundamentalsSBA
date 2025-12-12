@@ -122,9 +122,7 @@ function getLearnerData(course, ag, submissions) {
     }
 
     const validAssignments = {}; // object that stores valid assignments
-
-    for (let i = 0; i < ag.assignments.length; i++) {
-      const assignment = ag.assignments[i];
+    for (let assignment of ag.assignments) {
       if (
         isAssignmentDue(assignment.due_at) &&
         assignment.points_possible > 0
@@ -140,23 +138,19 @@ function getLearnerData(course, ag, submissions) {
       const learnerId = submission.learner_id;
       const assignmentId = submission.assignment_id;
 
-      console.log(`\nLearner id: ${learnerId}, assignment id: ${assignmentId}`);
-
       // Skip if assignment is not valid
       if (!validAssignments[assignmentId]) {
-        console.log(`assignment ${assignmentId} not due or invalid`);
         continue;
       }
 
-      // Initialize learner object if first time seeing them
+      // Initialize learner if needed
       if (!learnerData.has(learnerId)) {
         learnerData.set(learnerId, {
           id: learnerId,
-          scores: {}, // store percentage
+          scores: {},
           totalScore: 0,
           totalPossible: 0,
         });
-        console.log(`Created new entry for learner ${learnerId}`);
       }
 
       const learner = learnerData.get(learnerId);
@@ -168,8 +162,6 @@ function getLearnerData(course, ag, submissions) {
         assignment.due_at
       );
 
-      console.log(`Late submission? ${late}`);
-
       // Calculate score with potential late penalty
       let finalScore = submission.submission.score;
       if (late) {
@@ -178,62 +170,67 @@ function getLearnerData(course, ag, submissions) {
         if (finalScore < 0) {
           finalScore = 0;
         }
-        console.log(`Applied penalty: ${penalty} points.`);
       }
 
       // Calculate percentage for this assignment
       const percentage = finalScore / assignment.points_possible;
 
-      // Store in learner's scores object
+      // Store data
       learner.scores[assignmentId] = percentage;
-
-      // Update totals for weighted average
       learner.totalScore += finalScore;
       learner.totalPossible += assignment.points_possible;
-
-      console.log(`Percentage: ${percentage.toFixed(2)}.`);
-      console.log(
-        `updated totals: ${learner.totalScore}/${learner.totalPossible}`
-      );
     }
 
-    // Convert Map to array format for output
     const result = [];
+
+    //loop through each learner
     for (let [learnerId, data] of learnerData) {
-      // Calculate overall average
-      const avg =
-        data.totalPossible > 0 ? data.totalScore / data.totalPossible : 0;
+      console.log(`\nFormatting data for learner ${learnerId}:`);
+      console.log("Raw data:", data);
+
+      //Calculate weighted average
+      let avg = 0;
+      if (data.totalPossible > 0) {
+        avg = data.totalScore / data.totalPossible;
+        avg = Math.round(avg * 1000) / 1000;
+      }
+
+      console.log(`weighted average: ${avg}`);
 
       // Create result object
       const learnerResult = {
-        id: data.id,
-        avg: parseFloat(avg.toFixed(3)),
+        id: learnerId,
+        avg: avg,
       };
 
-      // Add individual assignment scores
+      // Add each assignment score
       for (let assignmentId in data.scores) {
-        learnerResult[assignmentId] = parseFloat(
-          data.scores[assignmentId].toFixed(3)
+        learnerResult[assignmentId] =
+          Math.round(data.scores[assignmentId] * 1000) / 1000;
+        console.log(
+          `Assignment ${assignmentId}: ${learnerResult[assignmentId]}`
         );
       }
 
+      //Add to result array
       result.push(learnerResult);
+      console.log("Final object:", learnerResult);
     }
-    console.log();
 
-    console.log(`Final learner's data:`, result);
     return result;
+
   } catch (error) {
     console.error("There's error in getLearnerData:", error.message);
     return [];
   }
 }
+console.log("=== FINAL TEST ===");
+const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
+console.log(result);
+console.log("\n=== FINAL OUTPUT ===");
+console.log(JSON.stringify(result, null, 2));
 
-getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
-// const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
-// console.log(result);
-
-// here, we would process this data to achieve the desired result.
+// desired result:
 //   const result = [
 //     {
 //       id: 125,
@@ -249,15 +246,6 @@ getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
 //     }
 //   ];
 
-// Thing to keep in mind:
 
-//Relationships between objects
-//   -Reread, reread, reread the prompt
-//   -Create Data Model relationship diagram
-//Break down the problem into plain language steps before starting
-//You DO NOT NEED TO USE Date() class - date is given as a string (turn it into an array for easy compairison).
-//   -Use current year as current date
-//Try Catch used around the main logic
-//Main function was already created for you, so use it
-//The whole logic revolves around 1 main loop!!!!!
-//Refer to the expected output.
+
+
