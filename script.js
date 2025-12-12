@@ -218,7 +218,6 @@ function getLearnerData(course, ag, submissions) {
     }
 
     return result;
-
   } catch (error) {
     console.error("There's error in getLearnerData:", error.message);
     return [];
@@ -228,7 +227,7 @@ console.log("=== FINAL TEST ===");
 const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
 console.log(result);
 console.log("\n=== FINAL OUTPUT ===");
-console.log(JSON.stringify(result, null, 2));
+console.log("const result =", JSON.stringify(result, null, 1));
 
 // desired result:
 //   const result = [
@@ -245,7 +244,3 @@ console.log(JSON.stringify(result, null, 2));
 //       2: 0.833 // late: (140 - 15) / 150
 //     }
 //   ];
-
-
-
-
