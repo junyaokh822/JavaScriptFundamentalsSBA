@@ -91,7 +91,7 @@ function isSubmissionLate(submitted_at, due_at) {
 }
 
 //calculate the percentage score with late penalty
-function calculateScore(score, possiblePoints, isLate = false) {
+function calculatePenalizedScore(score, possiblePoints, isLate = false) {
   if (typeof score !== "number" || typeof possiblePoints !== "number") {
     throw new Error(`score and possiblePoints has to be numbers!`);
   }
@@ -109,7 +109,10 @@ function calculateScore(score, possiblePoints, isLate = false) {
       finalScore = 0;
     }
   }
-  return finalScore / possiblePoints; // return the percentage score
+  return {
+    actualScore: finalScore,
+    percentage: finalScore / possiblePoints,
+  };
 }
 
 function getLearnerData(course, ag, submissions) {
@@ -162,22 +165,15 @@ function getLearnerData(course, ag, submissions) {
         assignment.due_at
       );
 
-      // Calculate score with potential late penalty
-      let finalScore = submission.submission.score;
-      if (late) {
-        const penalty = assignment.points_possible * 0.1;
-        finalScore = finalScore - penalty;
-        if (finalScore < 0) {
-          finalScore = 0;
-        }
-      }
-
-      // Calculate percentage for this assignment
-      const percentage = finalScore / assignment.points_possible;
+      const { actualScore, percentage } = calculatePenalizedScore(
+        submission.submission.score,
+        assignment.points_possible,
+        late
+      );
 
       // Store data
       learner.scores[assignmentId] = percentage;
-      learner.totalScore += finalScore;
+      learner.totalScore += actualScore;
       learner.totalPossible += assignment.points_possible;
     }
 
